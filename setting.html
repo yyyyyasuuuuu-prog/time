@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>テレビ時間設定</title>
+  <style>
+    body { font-family: "Yu Gothic", sans-serif; text-align: center; padding: 20px; }
+    select, button { font-size: 16px; margin: 10px; padding: 6px 12px; }
+  </style>
+</head>
+<body>
+  <h2>テレビを消す時間の設定</h2>
+
+  <label>時間：
+    <select id="hourSelect"></select>
+  </label>
+
+  <label>分：
+    <select id="minuteSelect"></select>
+  </label>
+
+  <br/>
+  <button onclick="saveSetting()">保存</button>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbyG6GzwuQEA0W8kolCo1iSgmtmgcYrWwKz_42gpbB21YQdBmEVv_dzz8tVy_vmrQZqSKg/exec";
+
+    const hourSelect = document.getElementById("hourSelect");
+    const minuteSelect = document.getElementById("minuteSelect");
+
+    // 1〜10時
+    for (let h = 1; h <= 10; h++) {
+      const opt = document.createElement("option");
+      opt.value = h;
+      opt.textContent = `${h}時`;
+      hourSelect.appendChild(opt);
+    }
+
+    // 5分単位
+    for (let m = 0; m < 60; m += 5) {
+      const opt = document.createElement("option");
+      opt.value = m;
+      opt.textContent = `${m}分`;
+      minuteSelect.appendChild(opt);
+    }
+
+    // 保存処理
+    async function saveSetting() {
+      const hour = parseInt(hourSelect.value);
+      const minute = parseInt(minuteSelect.value);
+
+      await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({ hour, minute })
+      });
+
+      alert("設定を保存しました！");
+    }
+  </script>
+</body>
+</html>
