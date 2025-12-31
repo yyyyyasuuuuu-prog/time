@@ -125,6 +125,30 @@
       font-weight: bold;
     }
 
+.event-line {
+  position: absolute;
+  top: 0;
+  width: 10px;          /* 太さ */
+  height: 100%;
+  background: blue;
+  z-index: 5;          /* 進捗バーより上に表示 */
+}
+
+.setting-button {
+  font-size: 24px;
+  padding: 10px 20px;
+  margin-bottom: 20px;
+  background: #4da3ff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.setting-button:hover {
+  background: #1c82e3;
+}
+
 .hour-bar {
   width: 100%;
   height: 140px;
@@ -152,12 +176,21 @@
 <body>
   <h2>優汰くん じかん</h2>
 
+<button class="setting-button" onclick="location.href='https://yyyyyasuuuuu-prog.github.io/time/setting.html'">
+  ⚙
+</button>
+
   <div class="board">
     <div class="clocks-row" id="clocksRow"></div>
     <div class="bars-row" id="barsRow"></div>
   </div>
 
   <script>
+
+	window.addEventListener("touchstart", () => {
+	  silentSound.play().catch(()=>{});
+	}, { once: true });
+
     const API_URL = "https://script.google.com/macros/s/AKfycbzTWTdnqjQ3zoWuiOngmGm3Kqro9FQMx1R3g2x7tMV2MoU2DetU3lMyoBg3G0aqxzsJNQ/exec";
     const clockHours = [6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22];
 
@@ -228,6 +261,8 @@
 
       const clocksRow = document.getElementById("clocksRow");
       const barsRow   = document.getElementById("barsRow");
+      
+      timeoutSound.loop = true;
 
       clocksRow.innerHTML = "";
       barsRow.innerHTML   = "";
@@ -283,7 +318,7 @@
         if (tvTotal >= hourStart && tvTotal < hourEnd) {
           const tv = document.createElement("div");
           tv.className = "tv-label";
-          tv.innerHTML = `<div class="tv-icon">↑<br>📺</div>OFF<br>`;
+          tv.innerHTML = `<div class="tv-icon">📺</div>OFF<br>`;
           barCell.appendChild(tv);
 
           const diff = tvTotal - currentTotal;
@@ -315,7 +350,18 @@
 
             // 時間になった瞬間の音
             if (lastDiff !== null && lastDiff >= 0 && diff < 0) {
+              timeoutSound.loop = true;          // ← ループ再生ON
+
               timeoutSound.play().catch(()=>{});
+
+		  // 60秒後に停止
+		  setTimeout(() => {
+		    timeoutSound.pause();
+		    timeoutSound.currentTime = 0;
+		    timeoutSound.loop = false;       // ← ループOFFに戻す
+		  }, 60000);
+
+
             }
           }
 
@@ -325,17 +371,27 @@
         barsRow.appendChild(barCell);
 
 
+	// ▼ テレビの赤い縦線
+	const tvLine = document.createElement("div");
+	tvLine.className = "event-line";
+
+	// 位置 = (分 / 60) * 100%
+	tvLine.style.left = `${((tvTotal - hourStart) / 60) * 100}%`;
+
+	bar.appendChild(tvLine);
 
 
 
 
+
+	
     const leaveTotal = tvOffTime.leaveHour * 60 + tvOffTime.leaveMinute;
 
 	// ▼ 家を出る時間（Leave Time）
 	if (leaveTotal >= hourStart && leaveTotal < hourEnd) {
 	  const leave = document.createElement("div");
 	  leave.className = "tv-label";
-	  leave.innerHTML = `<div class="tv-icon">↑<br>🏠</div>家を出る<br>`;
+	  leave.innerHTML = `<div class="tv-icon">🏠</div>家を出る<br>`;
 	  barCell.appendChild(leave);
 
 	  const diff2 = leaveTotal - currentTotal;
@@ -367,13 +423,30 @@
 
 	    // 時間超過の音
 	    if (lastDiffLeave !== null && lastDiffLeave >= 0 && diff2 < 0) {
+               timeoutSound.loop = true;
+
 	      timeoutSound.play().catch(()=>{});
+
+	  setTimeout(() => {
+	    timeoutSound.pause();
+	    timeoutSound.currentTime = 0;
+	    timeoutSound.loop = false;
+	  }, 60000);
+
+
 	    }
 	  }
 
 	  lastDiffLeave = diff2;
 	}
 
+	// ▼ 家を出る時間の赤い縦線
+	const leaveLine = document.createElement("div");
+	leaveLine.className = "event-line";
+
+	leaveLine.style.left = `${((leaveTotal - hourStart) / 60) * 100}%`;
+
+	bar.appendChild(leaveLine);
 
 
 
@@ -381,6 +454,8 @@
 
       });
     }
+
+
 
     render();
     setInterval(render, 30000);
