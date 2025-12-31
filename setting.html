@@ -1,61 +1,104 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>テレビ時間設定</title>
+  <meta charset="UTF-8">
+  <title>設定画面</title>
   <style>
-    body { font-family: "Yu Gothic", sans-serif; text-align: center; padding: 20px; }
-    select, button { font-size: 16px; margin: 10px; padding: 6px 12px; }
+    body {
+      font-family: "Yu Gothic", sans-serif;
+      padding: 20px;
+      background: #eef;
+    }
+    label {
+      font-size: 20px;
+      display: block;
+      margin-top: 20px;
+    }
+    select {
+      font-size: 20px;
+      padding: 5px;
+    }
+    button {
+      margin-top: 30px;
+      font-size: 22px;
+      padding: 10px 20px;
+    }
   </style>
 </head>
 <body>
-  <h2>テレビを消す時間の設定</h2>
 
-  <label>時間：
-    <select id="hourSelect"></select>
-  </label>
+  <h2>設定画面</h2>
 
-  <label>分：
-    <select id="minuteSelect"></select>
-  </label>
+  <!-- ▼ テレビを消す時間 -->
+  <label>テレビを消す時間</label>
+  <select id="tvHour"></select> 時
+  <select id="tvMinute"></select> 分
 
-  <br/>
-  <button onclick="saveSetting()">保存</button>
+  <!-- ▼ 家を出る時間（追加） -->
+  <label>家を出る時間</label>
+  <select id="leaveHour"></select> 時
+  <select id="leaveMinute"></select> 分
+
+  <br><br>
+  <button onclick="save()">保存する</button>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyG6GzwuQEA0W8kolCo1iSgmtmgcYrWwKz_42gpbB21YQdBmEVv_dzz8tVy_vmrQZqSKg/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbyjdLcMw14juT0WcyUBgn8xu18_2AajvESaXPj0rhHTf-A9jGTw4fWcwazX1dEPtuisDw/exec";
 
-    const hourSelect = document.getElementById("hourSelect");
-    const minuteSelect = document.getElementById("minuteSelect");
-
-    // 1〜10時
-    for (let h = 1; h <= 10; h++) {
-      const opt = document.createElement("option");
-      opt.value = h;
-      opt.textContent = `${h}時`;
-      hourSelect.appendChild(opt);
+    // ▼ 時刻選択肢を作成
+    function fillSelect(id, max) {
+      const sel = document.getElementById(id);
+      for (let i = 0; i <= max; i++) {
+        const op = document.createElement("option");
+        op.value = i;
+        op.textContent = i;
+        sel.appendChild(op);
+      }
     }
 
-    // 5分単位
-    for (let m = 0; m < 60; m += 5) {
-      const opt = document.createElement("option");
-      opt.value = m;
-      opt.textContent = `${m}分`;
-      minuteSelect.appendChild(opt);
+    fillSelect("tvHour", 23);
+    fillSelect("tvMinute", 59);
+    fillSelect("leaveHour", 23);
+    fillSelect("leaveMinute", 59);
+
+    // ▼ 設定を読み込む
+    async function load() {
+      const res = await fetch(API_URL);
+      const data = await res.json();
+
+      document.getElementById("tvHour").value = data.hour;
+      document.getElementById("tvMinute").value = data.minute;
+
+      // ▼ 家を出る時間（追加）
+      document.getElementById("leaveHour").value = data.leaveHour;
+      document.getElementById("leaveMinute").value = data.leaveMinute;
     }
 
-    // 保存処理
-    async function saveSetting() {
-      const hour = parseInt(hourSelect.value);
-      const minute = parseInt(minuteSelect.value);
+    load();
+
+    // ▼ 保存する
+    async function save() {
+      const tvHour = document.getElementById("tvHour").value;
+      const tvMinute = document.getElementById("tvMinute").value;
+
+      const leaveHour = document.getElementById("leaveHour").value;
+      const leaveMinute = document.getElementById("leaveMinute").value;
 
       await fetch(API_URL, {
         method: "POST",
-        body: JSON.stringify({ hour, minute })
+        body: JSON.stringify({
+          hour: tvHour,
+          minute: tvMinute,
+          leaveHour: leaveHour,
+          leaveMinute: leaveMinute
+        })
       });
 
-      alert("設定を保存しました！");
+      alert("保存しました！");
     }
   </script>
+
 </body>
 </html>
+
+
